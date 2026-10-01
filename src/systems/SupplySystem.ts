@@ -1,6 +1,5 @@
 import type { Faction, StrategicSite, SupplyNotice, SupplyPriority, SupplyRoute, SupplyState, Unit, UnitSupply, UnitType } from '../models/game'
 
-export const SUPPLY_RANGE=680
 const NETWORK_RANGE=2500
 export const AMMO_USE:Record<UnitType,number>={보병:1,기계화:2,기갑:2.5,포병:5,정찰:.7,공병:1.2}
 export const FUEL_USE:Record<UnitType,number>={보병:.002,기계화:.014,기갑:.021,포병:.012,정찰:.013,공병:.008}
@@ -31,7 +30,7 @@ export function updateSupply(units:Unit[],sites:StrategicSite[],dt:number,time:n
   const player=calculateSupplyRoutes(sites,'player'),enemy=calculateSupplyRoutes(sites,'enemy'),notices:SupplyNotice[]=[]
   const next=units.map(rawUnit=>{const unit=rawUnit.supply?rawUnit:{...rawUnit,supply:createUnitSupply(rawUnit.type,time)}
     if(unit.combatState==='destroyed')return unit
-    const network=unit.faction==='player'?player:enemy,available=network.nodes.filter(n=>n.kind==='supply_depot'&&network.connected.has(n.id)),source=available.sort((a,b)=>distance(a,unit)-distance(b,unit))[0],sourceDistance=source?distance(source,unit):Infinity,connected=!!source&&sourceDistance<=SUPPLY_RANGE
+    const network=unit.faction==='player'?player:enemy,available=network.nodes.filter(n=>n.kind==='supply_depot'&&network.connected.has(n.id)).sort((a,b)=>distance(a,unit)-distance(b,unit)),source=available.find(n=>distance(n,unit)<=n.captureRadius)??available[0],sourceDistance=source?distance(source,unit):Infinity,connected=!!source&&sourceDistance<=source.captureRadius
     const wasConnected=unit.supply.connected,wasState=unit.supply.state,wasAmmo=unit.supply.ammunition/unit.supply.maxAmmunition,wasFuel=unit.supply.fuel/unit.supply.maxFuel
     let ammunition=unit.supply.ammunition,fuel=unit.supply.fuel,lastResupplyTime=unit.supply.lastResupplyTime,status=unit.status
     const activelyResupplying=connected&&!unit.path.length&&(ammunition<unit.supply.maxAmmunition||fuel<unit.supply.maxFuel||unit.strength.current<unit.strength.max)
