@@ -30,6 +30,7 @@ export type Unit = {
   faction:Faction
   combatState:CombatState
   combatTargetId?:number
+  movementPriority?:boolean
   attackCooldown:number
   armor:number
   detectionRange:number

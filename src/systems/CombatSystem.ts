@@ -16,13 +16,13 @@ const damageAfterArmor=(damage:number,penetration:number,armor:number)=>Math.max
 
 export function updateCombat(units:Unit[],engagements:Engagement[],projectiles:Projectile[],dt:number,time:number,environmentFactor=1){
   const notices:CombatNotice[]=[]
-  let nextUnits=units.map(u=>({...u,supply:u.supply??createUnitSupply(u.type,time),attackCooldown:Math.max(0,u.attackCooldown-dt)}))
+  let nextUnits=units.map(u=>({...u,combatState:u.combatState==='disengaging'&&!u.path.length?'none' as const:u.combatState,movementPriority:!!u.movementPriority&&u.path.length>0,supply:u.supply??createUnitSupply(u.type,time),attackCooldown:Math.max(0,u.attackCooldown-dt)}))
   const nextProjectiles:Projectile[]=[]
   projectiles.forEach(p=>{const progress=Math.min(1,p.progress+p.speed*dt/Math.max(30,Math.hypot(p.targetX-p.x,p.targetY-p.y)));if(progress<1){nextProjectiles.push({...p,progress});return}const target=nextUnits.find(u=>u.id===p.targetId);if(!target||target.combatState==='destroyed')return;if(p.hit){const strength=Math.max(0,target.strength.current-p.damage),destroyed=strength<=0;nextUnits=nextUnits.map(u=>u.id===target.id?{...u,strength:{...u.strength,current:strength},combatState:destroyed?'destroyed':'underFire',path:destroyed?[]:u.path,status:destroyed?'대기':u.status}:u);notices.push({type:destroyed?'destroyed':'hit',unitId:p.attackerId,targetId:p.targetId,damage:p.damage})}else notices.push({type:'miss',unitId:p.attackerId,targetId:p.targetId})})
 
   const nextEngagements:Engagement[]=[]
   nextUnits.forEach(attacker=>{
-    if(attacker.combatState==='destroyed'||!attacker.combatTargetId)return
+    if(attacker.combatState==='destroyed'||attacker.movementPriority||!attacker.combatTargetId)return
     const target=nextUnits.find(u=>u.id===attacker.combatTargetId&&u.combatState!=='destroyed')
     if(!target){nextUnits=nextUnits.map(u=>u.id===attacker.id?{...u,combatTargetId:undefined,combatState:'none'}:u);return}
     const distance=Math.hypot(target.x-attacker.x,target.y-attacker.y),weapon=WEAPONS[attacker.type]
@@ -36,7 +36,7 @@ export function updateCombat(units:Unit[],engagements:Engagement[],projectiles:P
     const effectiveness=supplyCombatFactor(attacker),hit=Math.random()<weapon.accuracy*effectiveness*environmentFactor,damage=Math.max(1,Math.round(damageAfterArmor(weapon.damage,weapon.penetration,target.armor)*effectiveness))
     nextProjectiles.push({id:`shot-${attacker.id}-${time}-${Math.random()}`,attackerId:attacker.id,targetId:target.id,x:attacker.x,y:attacker.y,targetX:target.x,targetY:target.y,progress:0,speed:weapon.projectileSpeed,hit,damage,kind:attacker.type})
     nextUnits=nextUnits.map(u=>u.id===attacker.id?{...u,attackCooldown:weapon.cooldown,supply:{...u.supply,ammunition:Math.max(0,u.supply.ammunition-AMMO_USE[u.type])}}:u);notices.push({type:'fired',unitId:attacker.id,targetId:target.id})
-    if(!target.combatTargetId&&target.faction!==attacker.faction)nextUnits=nextUnits.map(u=>u.id===target.id?{...u,combatTargetId:attacker.id,combatState:'engaging'}:u)
+    if(!target.combatTargetId&&!target.movementPriority&&target.faction!==attacker.faction)nextUnits=nextUnits.map(u=>u.id===target.id?{...u,combatTargetId:attacker.id,combatState:'engaging'}:u)
   })
   return{units:nextUnits,engagements:nextEngagements,projectiles:nextProjectiles.slice(-120),notices}
 }

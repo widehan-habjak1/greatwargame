@@ -79,6 +79,11 @@ function App(){
   useEffect(()=>{localStorage.setItem('greatwar-language',language);document.documentElement.lang=language},[language])
 
   const executeOrder=useCallback((order:Order)=>{
+    if(['move','recon','search','resupply','follow','reorganize','changeFormation'].includes(order.type)){
+      unitStore.current=unitStore.current.map(u=>order.targetUnitIds.includes(u.id)&&u.combatState!=='destroyed'?{...u,movementPriority:true,combatTargetId:undefined,combatState:'disengaging'}:u)
+    }else if(order.type==='attack'||order.type==='hold'){
+      unitStore.current=unitStore.current.map(u=>order.targetUnitIds.includes(u.id)?{...u,movementPriority:false}:u)
+    }
     const formation=formationStore.current.find(f=>f.id===order.formationId)
     if(['move','recon','search','resupply'].includes(order.type)&&order.destination){if(formation){const result=commandFormation(formation,unitStore.current,order.destination);unitStore.current=result.units;formationStore.current=formationStore.current.map(f=>f.id===formation.id?result.formation:f)}else{const selected=unitStore.current.filter(u=>order.targetUnitIds.includes(u.id)),cols=Math.ceil(Math.sqrt(selected.length));unitStore.current=unitStore.current.map(u=>{const i=selected.findIndex(v=>v.id===u.id);if(i<0)return u;const offset={x:(i%cols-(cols-1)/2)*75,y:(Math.floor(i/cols)-(Math.ceil(selected.length/cols)-1)/2)*75},target={x:order.destination!.x+offset.x,y:order.destination!.y+offset.y};return{...u,path:createPath(u,target),status:'이동 중',synchronizedSpeed:undefined}})}}
     else if(order.type==='hold'){unitStore.current=unitStore.current.map(u=>order.targetUnitIds.includes(u.id)?{...u,path:[],status:'위치 사수',synchronizedSpeed:undefined}:u);if(formation)formationStore.current=formationStore.current.map(f=>f.id===formation.id?{...f,status:'위치 사수',destination:undefined}:f)}
