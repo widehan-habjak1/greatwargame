@@ -1,7 +1,7 @@
 import type { MissionEvaluation, Objective, Scenario, StrategicSite, TimeOfDay, Unit, Weather } from '../models/game'
 
 export const IRON_DAWN:Scenario={
-  id:'iron-dawn',name:'철의 새벽',briefing:'서부 교두보를 방어하면서 아른하임 지휘소와 칼슈타트 탄약창을 확보하고 적 기동단을 무력화하십시오.',duration:3600,
+  id:'iron-dawn',name:'무난하고 빠른 전면전',briefing:'서부 교두보를 방어하면서 아른하임 지휘소와 칼슈타트 탄약창을 확보하고 적 기동단을 무력화하십시오.',duration:180,
   objectives:[
     {id:'defend-hq',type:'DEFEND',label:'서부 전선 지휘소 방어',description:'주 지휘소를 적에게 빼앗기지 마십시오.',targetSiteId:'west-hq',required:true,completed:false,failed:false},
     {id:'capture-arnheim',type:'CAPTURE',label:'아른하임 전쟁기지 점령',description:'적 전선 지휘의 중심을 확보하십시오.',targetSiteId:'arnheim-cp',required:true,completed:false,failed:false},
