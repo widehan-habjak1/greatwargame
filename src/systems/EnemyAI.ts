@@ -22,12 +22,14 @@ export function observeBattlefield(units:Unit[],engagements:Engagement[],objecti
 }
 
 const preferredTarget=(members:Unit[],hostiles:Unit[])=>{
+  if(!members.length||!hostiles.length)return undefined
   const lead=members[0],preferred=lead?.type==='기갑'?hostiles.filter(u=>u.type==='기갑'||u.type==='기계화'):lead?.type==='포병'?hostiles.filter(u=>u.type==='포병'||u.type==='기갑'):hostiles
   const pool=preferred.length?preferred:hostiles
-  return pool.sort((a,b)=>distance(lead,a)-distance(lead,b))[0]
+  return [...pool].sort((a,b)=>distance(lead,a)-distance(lead,b))[0]
 }
 
 export function decideEnemyAction(snapshot:BattlefieldSnapshot,formations:Formation[],commander:EnemyCommander):AIDecision{
+  formations=formations.filter(f=>snapshot.friendlyUnits.some(u=>f.unitIds.includes(u.id)))
   const damaged=snapshot.friendlyUnits.filter(u=>u.strength.current/u.strength.max<.36)
   const supplyCritical=snapshot.friendlyUnits.filter(u=>u.supply.state==='CRITICAL_SUPPLY'||u.supply.state==='OUT_OF_SUPPLY')
   if(!snapshot.friendlyUnits.length)return{state:'idle',score:0,reason:'가용 전투 부대 없음',priority:'normal'}
@@ -36,7 +38,7 @@ export function decideEnemyAction(snapshot:BattlefieldSnapshot,formations:Format
   const pressured=formations.find(f=>f.unitIds.some(id=>snapshot.activeEngagements.some(e=>e.attackerId===id||e.defenderId===id)))
   const reserve=formations.find(f=>f.id==='enemy-armor'&&!pressured?.unitIds.some(id=>f.unitIds.includes(id)))
   if(pressured&&reserve&&snapshot.forceRatio<.8)return{state:'reinforcing',score:82,reason:`${pressured.name} 교전 지원`,formationId:reserve.id,destination:pressured.center,priority:'high'}
-  if(snapshot.objectiveThreatened||snapshot.contactDetected){const active=formations.find(f=>f.id==='enemy-armor')??formations[0],members=snapshot.friendlyUnits.filter(u=>active.unitIds.includes(u.id)),target=preferredTarget(members,snapshot.hostileUnits);if(target?.intelligenceState&&target.intelligenceState!=='visible')return{state:'pursuing',score:71,reason:'마지막 확인 위치 수색',formationId:active.id,destination:{x:target.x,y:target.y},priority:'high'};return{state:'attacking',score:76,reason:snapshot.objectiveThreatened?'방어권 내 적 위협 제거':'정찰 접촉 · 선제 교전',formationId:active.id,targetUnitId:target?.id,priority:'high'}}
+  if(snapshot.objectiveThreatened||snapshot.contactDetected){const active=formations.find(f=>f.id==='enemy-armor')??formations[0],members=active?snapshot.friendlyUnits.filter(u=>active.unitIds.includes(u.id)):snapshot.friendlyUnits,target=preferredTarget(members,snapshot.hostileUnits);if(target?.intelligenceState&&target.intelligenceState!=='visible')return{state:'pursuing',score:71,reason:'마지막 확인 위치 수색',formationId:active?.id,destination:{x:target.x,y:target.y},priority:'high'};return{state:'attacking',score:76,reason:snapshot.objectiveThreatened?'방어권 내 적 위협 제거':'정찰 접촉 · 선제 교전',formationId:active?.id,targetUnitId:target?.id,priority:'high'}}
   return{state:'patrolling',score:58,reason:'방어 구역 불규칙 순찰',destination:commander.objective.position,priority:'normal'}
 }
 
