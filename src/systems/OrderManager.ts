@@ -37,7 +37,7 @@ export function processOrders(orders:Order[],time:number,units:Unit[]):{orders:O
     else if(order.status==='executing'){
       const members=units.filter(u=>order.targetUnitIds.includes(u.id))
       if(['move','recon','search'].includes(order.type)&&members.length&&members.every(u=>!u.path.length))to='completed'
-      else if(order.type==='resupply'&&members.length&&members.every(u=>u.supply.ammunition/u.supply.maxAmmunition>=.98&&u.supply.fuel/u.supply.maxFuel>=.98))to='completed'
+      else if(order.type==='resupply'&&members.length&&members.every(u=>!u.path.length&&u.strength.current>=u.strength.max&&u.supply.ammunition/u.supply.maxAmmunition>=.98&&u.supply.fuel/u.supply.maxFuel>=.98))to='completed'
       else if(order.type==='attack'&&order.targetUnitId&&units.find(u=>u.id===order.targetUnitId)?.combatState==='destroyed')to='completed'
       else if(['hold','reorganize','changeFormation'].includes(order.type)&&time-order.phaseStartedAt>=.4)to='completed'
     }

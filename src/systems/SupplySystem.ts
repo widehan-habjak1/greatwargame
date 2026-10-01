@@ -12,7 +12,7 @@ const eligible=(site:StrategicSite,faction:Faction)=>site.owner===faction&&['com
 const distance=(a:{x:number;y:number},b:{x:number;y:number})=>Math.hypot(a.x-b.x,a.y-b.y)
 
 export function calculateSupplyRoutes(sites:StrategicSite[],faction:Faction){
-  const nodes=sites.filter(site=>eligible(site,faction)),sources=nodes.filter(site=>site.kind==='command_post'),connected=new Set(sources.map(s=>s.id)),routes:SupplyRoute[]=[]
+  const nodes=sites.filter(site=>eligible(site,faction)),sources=nodes.filter(site=>site.kind==='supply_depot'),connected=new Set(sources.map(s=>s.id)),routes:SupplyRoute[]=[]
   let changed=true
   while(changed){changed=false;nodes.filter(n=>!connected.has(n.id)).forEach(node=>{const parent=nodes.filter(n=>connected.has(n.id)).sort((a,b)=>distance(a,node)-distance(b,node))[0];if(parent&&distance(parent,node)<=NETWORK_RANGE){connected.add(node.id);routes.push({id:`${faction}-${parent.id}-${node.id}`,faction,from:parent,to:node,fromName:parent.name,toName:node.name,connected:true});changed=true}})}
   nodes.filter(n=>!connected.has(n.id)).forEach(node=>{const parent=nodes.filter(n=>connected.has(n.id)).sort((a,b)=>distance(a,node)-distance(b,node))[0];if(parent)routes.push({id:`${faction}-${parent.id}-${node.id}`,faction,from:parent,to:node,fromName:parent.name,toName:node.name,connected:false})})
@@ -30,14 +30,16 @@ const stateFor=(unit:Unit,connected:boolean,time:number):SupplyState=>{
 export function updateSupply(units:Unit[],sites:StrategicSite[],dt:number,time:number,efficiency=1){
   const player=calculateSupplyRoutes(sites,'player'),enemy=calculateSupplyRoutes(sites,'enemy'),notices:SupplyNotice[]=[]
   const next=units.map(rawUnit=>{const unit=rawUnit.supply?rawUnit:{...rawUnit,supply:createUnitSupply(rawUnit.type,time)}
-    const network=unit.faction==='player'?player:enemy,available=network.nodes.filter(n=>network.connected.has(n.id)),source=available.sort((a,b)=>distance(a,unit)-distance(b,unit))[0],sourceDistance=source?distance(source,unit):Infinity,connected=!!source&&sourceDistance<=SUPPLY_RANGE
+    if(unit.combatState==='destroyed')return unit
+    const network=unit.faction==='player'?player:enemy,available=network.nodes.filter(n=>n.kind==='supply_depot'&&network.connected.has(n.id)),source=available.sort((a,b)=>distance(a,unit)-distance(b,unit))[0],sourceDistance=source?distance(source,unit):Infinity,connected=!!source&&sourceDistance<=SUPPLY_RANGE
     const wasConnected=unit.supply.connected,wasState=unit.supply.state,wasAmmo=unit.supply.ammunition/unit.supply.maxAmmunition,wasFuel=unit.supply.fuel/unit.supply.maxFuel
     let ammunition=unit.supply.ammunition,fuel=unit.supply.fuel,lastResupplyTime=unit.supply.lastResupplyTime,status=unit.status
-    const activelyResupplying=connected&&!unit.path.length&&(ammunition<unit.supply.maxAmmunition||fuel<unit.supply.maxFuel)
+    const activelyResupplying=connected&&!unit.path.length&&(ammunition<unit.supply.maxAmmunition||fuel<unit.supply.maxFuel||unit.strength.current<unit.strength.max)
     if(activelyResupplying){const modifier=(unit.supply.priority==='urgent'?1.45:unit.supply.priority==='high'?1.2:1)*efficiency;ammunition=Math.min(unit.supply.maxAmmunition,ammunition+9*modifier*dt);fuel=Math.min(unit.supply.maxFuel,fuel+7*modifier*dt);lastResupplyTime=time;if(status==='대기')status='재보급 중'}
     else if(status==='재보급 중')status='대기'
     const disconnectedSince=connected?undefined:unit.supply.disconnectedSince??time
-    const draft={...unit,supply:{...unit.supply,ammunition,fuel,connected,lastResupplyTime,disconnectedSince,sourceId:source?.id,sourceName:source?.name,distance:Number.isFinite(sourceDistance)?sourceDistance:undefined},status}
+    const strength=activelyResupplying?{...unit.strength,current:Math.min(unit.strength.max,unit.strength.current+12*dt*efficiency)}:unit.strength
+    const draft={...unit,strength,supply:{...unit.supply,ammunition,fuel,connected,lastResupplyTime,disconnectedSince,sourceId:source?.id,sourceName:source?.name,distance:Number.isFinite(sourceDistance)?sourceDistance:undefined},status}
     const state=stateFor(draft,connected,time),ammoRatio=ammunition/unit.supply.maxAmmunition,fuelRatio=fuel/unit.supply.maxFuel,priority:SupplyPriority=state==='CRITICAL_SUPPLY'||state==='OUT_OF_SUPPLY'?'urgent':state==='LOW_SUPPLY'?'high':'normal'
     if(wasConnected&&!connected)notices.push({unitId:unit.id,type:'disconnected'});if(!wasConnected&&connected)notices.push({unitId:unit.id,type:'connected'})
     if(wasAmmo>=.5&&ammoRatio<.5)notices.push({unitId:unit.id,type:'low_ammo'});if(wasFuel>=.5&&fuelRatio<.5)notices.push({unitId:unit.id,type:'low_fuel'});if(wasState!=='CRITICAL_SUPPLY'&&state==='CRITICAL_SUPPLY')notices.push({unitId:unit.id,type:'critical'})
@@ -47,4 +49,4 @@ export function updateSupply(units:Unit[],sites:StrategicSite[],dt:number,time:n
   return{units:next,routes:[...player.routes,...enemy.routes],notices}
 }
 
-export function nearestSupplyPoint(unit:Unit,sites:StrategicSite[]){const network=calculateSupplyRoutes(sites,unit.faction);return network.nodes.filter(n=>network.connected.has(n.id)).sort((a,b)=>distance(a,unit)-distance(b,unit))[0]}
+export function nearestSupplyPoint(unit:Unit,sites:StrategicSite[]){const network=calculateSupplyRoutes(sites,unit.faction);return network.nodes.filter(n=>n.kind==='supply_depot'&&network.connected.has(n.id)).sort((a,b)=>distance(a,unit)-distance(b,unit))[0]}

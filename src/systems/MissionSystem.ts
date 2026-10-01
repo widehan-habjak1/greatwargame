@@ -1,12 +1,10 @@
 import type { MissionEvaluation, Objective, Scenario, StrategicSite, TimeOfDay, Unit, Weather } from '../models/game'
 
 export const IRON_DAWN:Scenario={
-  id:'iron-dawn',name:'무난하고 빠른 전면전',briefing:'서부 교두보를 방어하면서 아른하임 지휘소와 칼슈타트 탄약창을 확보하고 적 기동단을 무력화하십시오.',duration:180,
+  id:'iron-dawn',name:'무난하고 빠른 전면전',briefing:'아른헤임 기지와 칼슈타트 보급소를 점령하십시오. 보급소에서 탄약·연료·전력을 회복할 수 있습니다.',duration:180,
   objectives:[
-    {id:'defend-hq',type:'DEFEND',label:'서부 전선 지휘소 방어',description:'주 지휘소를 적에게 빼앗기지 마십시오.',targetSiteId:'west-hq',required:true,completed:false,failed:false},
-    {id:'capture-arnheim',type:'CAPTURE',label:'아른하임 전쟁기지 점령',description:'적 전선 지휘의 중심을 확보하십시오.',targetSiteId:'arnheim-cp',required:true,completed:false,failed:false},
-    {id:'capture-ammo',type:'CAPTURE',label:'칼슈타트 탄약창 점령',description:'적 전선의 탄약 보급을 차단하십시오.',targetSiteId:'kalstadt-ammo',required:true,completed:false,failed:false},
-    {id:'destroy-mobile',type:'DESTROY',label:'적 기동단 무력화',description:'적 전차·정찰 기동부대를 전투 불능으로 만드십시오.',targetUnitIds:[103,105],required:true,completed:false,failed:false},
+    {id:'capture-arnheim',type:'CAPTURE',label:'아른헤임 기지 점령',description:'아른헤임 기지를 아군 거점으로 확보하십시오.',targetSiteId:'arnheim-cp',required:true,completed:false,failed:false},
+    {id:'capture-ammo',type:'CAPTURE',label:'칼슈타트 보급소 점령',description:'칼슈타트 보급소를 확보해 재보급에 활용하십시오.',targetSiteId:'kalstadt-ammo',required:true,completed:false,failed:false},
   ]
 }
 
