@@ -31,6 +31,7 @@ export type Unit = {
   combatState:CombatState
   combatTargetId?:number
   movementPriority?:boolean
+  reinforcementObjectiveId?:string
   attackCooldown:number
   armor:number
   detectionRange:number

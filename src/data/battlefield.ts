@@ -25,6 +25,7 @@ export const roads:Point[][] = [
 ]
 export const bridges=[{x:1076,y:497},{x:1122,y:1185},{x:1210,y:1910},{x:1285,y:2470},{x:1395,y:3310},{x:1460,y:4160},{x:1580,y:5480},{x:1710,y:6820},{x:1810,y:8240},{x:1940,y:9420},{x:5400,y:650},{x:5480,y:1840},{x:5610,y:2980},{x:5710,y:4110},{x:5890,y:5360},{x:6050,y:6680},{x:6180,y:8060},{x:6370,y:9360}]
 export const STRATEGIC_SITES:StrategicSite[]=[
+  {id:'western-command',name:'서부 전선 지휘소',kind:'command_post',x:490,y:940,owner:'player',captureRadius:125,captureProgress:0,value:250,lootValue:100,lootedBy:[]},
   {id:'west-hq',name:'서부 전선 보급소',kind:'supply_depot',x:690,y:850,owner:'player',captureRadius:150,captureProgress:0,value:300,lootValue:180,lootedBy:[]},
   {id:'belov-supply',name:'벨로프 보급소',kind:'supply_depot',x:980,y:760,owner:'neutral',captureRadius:135,captureProgress:0,value:160,lootValue:120,lootedBy:[]},
   {id:'arnheim-cp',name:'아른헤임 기지',kind:'command_post',x:1850,y:1030,owner:'enemy',captureRadius:175,captureProgress:0,value:350,lootValue:220,lootedBy:[]},

@@ -24,5 +24,6 @@ export function HowToPlay({language,onClose,onLanguage}:{language:Language;onClo
     <p className="guide-keys">F · {ko?'부대에 카메라 이동':'Focus units'} |  M · {ko?'지도 모드':'Map mode'} |  L · {ko?'보급망':'Supply network'} |  R · {ko?'재보급':'Resupply'} |  Esc · {ko?'명령 취소 / 선택 해제':'Cancel / clear selection'}</p>
     <p className="guide-tip">{ko?'첫 플레이 팁: 일시정지 후 부대를 나누어 보급소를 확보하고, 정찰부대로 적과 교량을 확인하세요.':'First game tip: pause, assign units to secure supply depots, and scout enemies and bridges with reconnaissance units.'}</p>
     <button className="guide-start" onClick={onClose} autoFocus>{ko?'전장으로':'Enter Battlefield'} →</button>
+    <p>{ko?'점령 임무 하나를 처음 달성할 때마다 아군 지휘소에서 보병 1개와 기계화 1개 대대가 증원됩니다. 생성된 부대를 선택해 직접 투입하세요.':'Each capture objective grants one infantry and one mechanized battalion at an allied command post once. Select the new units to deploy them.'}</p>
   </dialog>
 }

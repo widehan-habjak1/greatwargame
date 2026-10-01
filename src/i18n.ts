@@ -34,6 +34,7 @@ const en={
 
 export const COPY={ko:{...ko,briefing:'아른헤임 기지와 칼슈타트 보급소를 점령하십시오. 보급소에서 탄약·연료·전력을 회복할 수 있습니다.',objectives:{'capture-arnheim':['아른헤임 기지 점령','아른헤임 기지를 아군 거점으로 확보하십시오.'],'capture-ammo':['칼슈타트 보급소 점령','칼슈타트 보급소를 확보해 재보급에 활용하십시오.']} as Record<string,[string,string]>},en:{...en,briefing:'Capture Arnheim Base and Kalstadt Supply Depot. Supply depots restore ammunition, fuel, and strength.',objectives:{'capture-arnheim':['Capture Arnheim Base','Secure Arnheim Base for your forces.'],'capture-ammo':['Capture Kalstadt Supply Depot','Secure the depot and use it to resupply.']} as Record<string,[string,string]>}}
 const englishNames:Record<string,string>={
+  '지휘소 증원 투입':'Command Post Reinforcements Deployed','증원':'Reserve',
   '서부 전선 보급소':'Western Front Supply Depot','아른헤임 기지':'Arnheim Base',
   '동부 장거리 통신소':'Eastern Long-range Communications Station','남부 집단군 지휘소':'Southern Army Group Command Post','적 제1전차중대':'Enemy 1st Tank Company',
   '하르덴':'Harden','벨로프':'Belov','칼슈타트':'Kalstadt','아른하임':'Arnheim','로젠':'Rosen','드라벤':'Draven','에버하임':'Everheim','노르트펠트':'Nordfeld','브뤼크':'Bruck','잘츠도르프':'Salzdorf','발데른':'Waldern','그라우펠트':'Graufeld','오스트하임':'Ostheim','카이저브뤼크':'Kaiserbruck','하겐':'Hagen','엘렌도르프':'Ellendorf','미텔발트':'Mittelwald','크로이츠':'Kreuz','쥐트하펜':'Sudhafen','바렌':'Waren','웨스트마르크':'Westmark',
