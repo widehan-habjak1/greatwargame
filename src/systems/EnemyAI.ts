@@ -1,5 +1,6 @@
-import type { AIDecision, BattlefieldSnapshot, EnemyCommander, Engagement, Formation, Order, Point, Unit } from '../models/game'
+import type { AIDecision, BattlefieldSnapshot, EnemyCommander, Engagement, Formation, Order, Point, StrategicSite, Unit } from '../models/game'
 import { WORLD } from '../data/battlefield'
+import { nearestSupplyPoint } from './SupplySystem'
 
 const power=(u:Unit)=>u.combatState==='destroyed'?0:(u.strength.current/u.strength.max)*({보병:1,기계화:1.35,기갑:1.65,포병:1.25,정찰:.55,공병:.75}[u.type])*(u.supply.state==='SUPPLIED'?1:u.supply.state==='LOW_SUPPLY'?.9:u.supply.state==='CRITICAL_SUPPLY'?.7:.5)
 const distance=(a:Point,b:Point)=>Math.hypot(a.x-b.x,a.y-b.y)
@@ -30,11 +31,7 @@ const preferredTarget=(members:Unit[],hostiles:Unit[])=>{
 
 export function decideEnemyAction(snapshot:BattlefieldSnapshot,formations:Formation[],commander:EnemyCommander):AIDecision{
   formations=formations.filter(f=>snapshot.friendlyUnits.some(u=>f.unitIds.includes(u.id)))
-  const damaged=snapshot.friendlyUnits.filter(u=>u.strength.current/u.strength.max<.36)
-  const supplyCritical=snapshot.friendlyUnits.filter(u=>u.supply.state==='CRITICAL_SUPPLY'||u.supply.state==='OUT_OF_SUPPLY')
   if(!snapshot.friendlyUnits.length)return{state:'idle',score:0,reason:'가용 전투 부대 없음',priority:'normal'}
-  if(supplyCritical.length>=Math.ceil(snapshot.friendlyUnits.length/2))return{state:'retreating',score:92,reason:'공세 지속 불가 · 보급 거점으로 복귀',destination:{x:1850,y:1030},priority:'urgent'}
-  if(damaged.length>=Math.ceil(snapshot.friendlyUnits.length/2)||snapshot.forceRatio<.38)return{state:'retreating',score:95,reason:`전력비 ${snapshot.forceRatio.toFixed(2)} · 전투력 보존`,destination:{x:2450,y:1120},priority:'urgent'}
   const pressured=formations.find(f=>f.unitIds.some(id=>snapshot.activeEngagements.some(e=>e.attackerId===id||e.defenderId===id)))
   const reserve=formations.find(f=>f.id==='enemy-armor'&&!pressured?.unitIds.some(id=>f.unitIds.includes(id)))
   if(pressured&&reserve&&snapshot.forceRatio<.8)return{state:'reinforcing',score:82,reason:`${pressured.name} 교전 지원`,formationId:reserve.id,destination:pressured.center,priority:'high'}
@@ -80,12 +77,22 @@ export function ordersForDecision(decision:AIDecision,formations:Formation[],sna
 
 const commanderlessDefensePoint=(index:number)=>({x:2100+(index%2)*170,y:900+Math.floor(index/2)*190})
 
-export function updateEnemyCommander(commander:EnemyCommander,units:Unit[],formations:Formation[],engagements:Engagement[],time:number){
+export function updateEnemyCommander(commander:EnemyCommander,units:Unit[],formations:Formation[],engagements:Engagement[],time:number,sites:StrategicSite[]=[]){
   if(time-commander.lastDecisionTime<commander.decisionInterval)return{commander,orders:[] as Order[],changed:false}
   const snapshot=observeBattlefield(units,engagements,commander.objective.position)
+  // Keep retreat slots until recovery, so repeated decisions cannot send the entire army back.
+  const recovered=(u:Unit)=>u.strength.current/u.strength.max>=.9&&u.supply.ammunition/u.supply.maxAmmunition>=.9&&u.supply.fuel/u.supply.maxFuel>=.9
+  const retreaters=snapshot.friendlyUnits.filter(u=>commander.resupplyingUnitIds?.includes(u.id)&&!recovered(u)&&nearestSupplyPoint(u,sites)).slice(0,2)
+  const candidates=snapshot.friendlyUnits.filter(u=>!retreaters.some(r=>r.id===u.id)&&(u.strength.current/u.strength.max<.5||u.supply.ammunition/u.supply.maxAmmunition<.2||u.supply.fuel/u.supply.maxFuel<.2)&&nearestSupplyPoint(u,sites)).sort((a,b)=>a.strength.current/a.strength.max-b.strength.current/b.strength.max)
+  retreaters.push(...candidates.slice(0,2-retreaters.length))
+  const resupplyingUnitIds=retreaters.map(u=>u.id)
+  const combatSnapshot={...snapshot,friendlyUnits:snapshot.friendlyUnits.filter(u=>!resupplyingUnitIds.includes(u.id))}
+  // Split partially unavailable formations into independent units for this decision.
+  const combatFormations=formations.filter(f=>f.id.startsWith('enemy-')&&!f.unitIds.some(id=>resupplyingUnitIds.includes(id)))
   const patrolMoving=snapshot.friendlyUnits.some(unit=>unit.path.length>0)
-  if(commander.state==='patrolling'&&!snapshot.contactDetected&&!snapshot.objectiveThreatened&&commander.plan&&patrolMoving&&time-commander.plan.createdAt<75)return{commander:{...commander,lastDecisionTime:time,snapshot},orders:[] as Order[],changed:false}
-  const decision=decideEnemyAction(snapshot,formations.filter(f=>f.id.startsWith('enemy-')),commander)
-  const orders=ordersForDecision(decision,formations.filter(f=>f.id.startsWith('enemy-')),snapshot,time)
-  return{commander:{...commander,state:decision.state,lastDecisionTime:time,lastDecision:decision,snapshot,plan:{summary:decision.reason,issuedOrderIds:orders.map(o=>o.id),createdAt:time}},orders,changed:commander.state!==decision.state||commander.lastDecision?.reason!==decision.reason}
+  if(!retreaters.length&&!commander.resupplyingUnitIds?.length&&commander.state==='patrolling'&&!snapshot.contactDetected&&!snapshot.objectiveThreatened&&commander.plan&&patrolMoving&&time-commander.plan.createdAt<75)return{commander:{...commander,lastDecisionTime:time,snapshot},orders:[] as Order[],changed:false}
+  const decision=decideEnemyAction(combatSnapshot,combatFormations,commander)
+  const orders=ordersForDecision(decision,combatFormations,combatSnapshot,time)
+  retreaters.forEach(u=>{const depot=nearestSupplyPoint(u,sites)!;if(!u.path.length&&distance(u,depot)<=depot.captureRadius)return;orders.push({id:`ai-${time.toFixed(1)}-resupply-${u.id}`,type:'resupply',issuerId:'enemy_commander',targetUnitIds:[u.id],destination:{x:depot.x,y:depot.y},status:'executing',createdAt:time,phaseStartedAt:time,startedAt:time,transmissionDuration:0,preparationDuration:0,priority:'urgent'})})
+  return{commander:{...commander,resupplyingUnitIds,state:decision.state,lastDecisionTime:time,lastDecision:decision,snapshot,plan:{summary:decision.reason,issuedOrderIds:orders.map(o=>o.id),createdAt:time}},orders,changed:commander.state!==decision.state||commander.lastDecision?.reason!==decision.reason}
 }
