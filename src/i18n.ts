@@ -33,5 +33,26 @@ const en={
 }
 
 export const COPY={ko,en}
+const englishNames:Record<string,string>={
+  '하르덴':'Harden','벨로프':'Belov','칼슈타트':'Kalstadt','아른하임':'Arnheim','로젠':'Rosen','드라벤':'Draven','에버하임':'Everheim','노르트펠트':'Nordfeld','브뤼크':'Bruck','잘츠도르프':'Salzdorf','발데른':'Waldern','그라우펠트':'Graufeld','오스트하임':'Ostheim','카이저브뤼크':'Kaiserbruck','하겐':'Hagen','엘렌도르프':'Ellendorf','미텔발트':'Mittelwald','크로이츠':'Kreuz','쥐트하펜':'Sudhafen','바렌':'Waren','웨스트마르크':'Westmark',
+  '린덴':'Linden','오버탈':'Obertal','슈타인':'Stein','발트호프':'Waldhof','클라인브뤼크':'Kleinbruck','호헨':'Hohen','도르프':'Dorf','아이헨':'Eichen','노이탈':'Neutal','펠젠':'Felsen','라우흐':'Rauch','알트브뤼크':'Altbruck','쾨니히스펠트':'Konigsfeld','잘름':'Salm','브루넨':'Brunnen',
+  '서북 삼림':'Northwestern Forest','북동 수림':'Northeastern Woods','동남 숲':'Southeastern Forest','서남 숲':'Southwestern Forest','검은 숲':'Blackwood','동부 대삼림':'Great Eastern Forest','남부 소나무숲':'Southern Pines','강변 수림':'Riverside Woods','발트마르크 숲':'Waldmark Forest','전나무 능선':'Fir Ridge','심동부 숲':'Deep Eastern Forest','녹색 지대':'Green Belt','늑대 숲':'Wolfwood','남부 변경림':'Southern March Forest','하부 소나무숲':'Lower Pines','국경 수림':'Border Woods',
+  '고지 204':'Hill 204','회색 구릉':'Grey Hills','독수리 능선':'Eagle Ridge','남부 고지':'Southern Heights','발데른 능선':'Waldern Ridge','철십자 고지':'Iron Cross Heights','동부 구릉':'Eastern Hills','황혼 능선':'Twilight Ridge','서부 고원':'Western Plateau','라우엔 호':'Lake Rauen','에르렌 호':'Lake Erlen','검은 호수':'Black Lake','남부 호':'Southern Lake',
+  '서부 전선 지휘소':'Western Front Command Post','전쟁기지':'Command Post','장거리 통신소':'Long-range Communications Station','방공 레이더':'Air Defense Radar','철도 조차장':'Rail Yard','집단군 지휘소':'Army Group Command Post','군수 보급창':'Logistics Depot','연료 저장소':'Fuel Depot','야전병원':'Field Hospital','공군기지':'Airbase','탄약창':'Ammo Depot','보급소':'Supply Depot','철도역':'Rail Station','레이더':'Radar',
+  '적 전선단':'Enemy Frontline Group','적 기동단':'Enemy Mobile Group','적 지원단':'Enemy Support Group','적 독립 정찰소대':'Enemy Independent Recon Platoon','적 국경수비중대':'Enemy Border Guard Company','적 독립 공병중대':'Enemy Independent Engineer Company','적 독립 포병포대':'Enemy Independent Artillery Battery',
+  '위치 사수':'Holding Position','이동 중':'Moving','대형 정렬':'Forming Up','재편성':'Reorganizing','재보급 중':'Resupplying','대기':'Idle','여단':'Brigade','연대':'Regiment','대대':'Battalion','중대':'Company','소대':'Platoon','기동편대':'Mobile Formation','기갑':'Armored','기계화':'Mechanized','보병':'Infantry','포병':'Artillery','정찰':'Recon','공병':'Engineer',
+  '농경지':'Farmland','평야':'Plain','삼림':'Forest','하천':'River','도로':'Road','도시':'City','교량':'Bridge','탄약':'Ammo','연료':'Fuel','대전구':'Grand Theater','전구':'Theater','전역':'Operational','지역':'Regional','전술':'Tactical',
+  '전체 선택':'Select All','선택 해제':'Selection Cleared','선택':'Selected','더블클릭하면':'Double-click to select','목적지 도착':'Destination Reached','전투 불능':'Disabled','사격':'Fired','피격':'Hit','전력':'Strength','진입':'Entered','적 접촉 탐지':'Enemy Contact Detected','적 접촉 소실':'Enemy Contact Lost','적 식별 완료':'Enemy Identified','적 접촉 재확인':'Enemy Contact Reacquired','마지막 위치 기록':'Last Position Recorded','적 접촉':'Enemy Contact','마지막 확인':'Last Seen','분 전':'Minutes Ago','미확인 적':'Unknown Enemy','적 지휘부':'Enemy Command','방어 구역 불규칙 순찰':'Irregular Defensive Patrol',
+  '명령 실행':'Order Executed','명령 완료':'Order Completed','명령 취소':'Order Cancelled','명령':'Order','공격':'Attack','이동':'Move','추종':'Follow','수색':'Search','재보급':'Resupply','대형 변경':'Change Formation','대기열 추가':'Added to Queue','실행':'Executed','취소':'Cancelled','창설 완료':'Created','창설':'Created','해체 완료':'Disbanded','해체':'Disbanded','개 부대':'Units',
+  '부대를 선택해 이동 명령을 내리십시오':'Select a unit and issue a move order','작전 상황 저장 완료':'Game Saved','저장된 작전 상황 불러오기 완료':'Game Loaded','저장된 작전 상황이 없습니다':'No Saved Game','저장 데이터가 손상되었습니다':'Saved Data Is Corrupted','시나리오 재시작 · 작전 통제권 인계':'Scenario Restarted · Command Transferred','작전 일시정지':'Operation Paused','작전 재개':'Operation Resumed','시간 배율':'Time Scale','작전 시간 속도':'Simulation Speed','보급망 전술 오버레이 전환':'Supply Overlay Toggled','지도 모드':'Map Mode','명령 입력 취소':'Command Input Cancelled','연결된 보급 거점이 없습니다':'No Connected Supply Point',
+  '보급망 단절':'Supply Disconnected','보급망 연결':'Supply Connected','보급 위험':'Critical Supply','탄약 부족':'Low Ammo','연료 부족':'Low Fuel','재보급 시작':'Resupply Started','재보급 완료':'Resupply Complete','군수품 노획':'Supplies Looted','점령':'Captured','아군':'Allies','적군':'Enemy',
+}
+const nameEntries=Object.entries(englishNames).sort((a,b)=>b[0].length-a[0].length)
+export function translateText(text:string,language:Language):string{
+  if(language==='ko')return text
+  let result=text.replace(/(적 )?제(\d+)(기갑|기계화|보병|포병|정찰|공병)(여단|연대|대대|중대|소대)/g,(_,enemy:string|undefined,n:string,type:string,size:string)=>`${enemy?'Enemy ':''}${n}${n.endsWith('11')||n.endsWith('12')||n.endsWith('13')?'th':n.endsWith('1')?'st':n.endsWith('2')?'nd':n.endsWith('3')?'rd':'th'} ${englishNames[type]} ${englishNames[size]}`).replace(/제(\d+)기동편대/g,'Mobile Formation $1')
+  for(const [source,target] of nameEntries)result=result.replaceAll(source,target)
+  return result
+}
 export type Copy=typeof ko
 export const format=(value:string,values:Record<string,string|number>)=>Object.entries(values).reduce((result,[key,replacement])=>result.replace(`{${key}}`,String(replacement)),value)
