@@ -34,6 +34,7 @@ const en={
 
 export const COPY={ko,en}
 const englishNames:Record<string,string>={
+  '동부 장거리 통신소':'Eastern Long-range Communications Station','남부 집단군 지휘소':'Southern Army Group Command Post','적 제1전차중대':'Enemy 1st Tank Company',
   '하르덴':'Harden','벨로프':'Belov','칼슈타트':'Kalstadt','아른하임':'Arnheim','로젠':'Rosen','드라벤':'Draven','에버하임':'Everheim','노르트펠트':'Nordfeld','브뤼크':'Bruck','잘츠도르프':'Salzdorf','발데른':'Waldern','그라우펠트':'Graufeld','오스트하임':'Ostheim','카이저브뤼크':'Kaiserbruck','하겐':'Hagen','엘렌도르프':'Ellendorf','미텔발트':'Mittelwald','크로이츠':'Kreuz','쥐트하펜':'Sudhafen','바렌':'Waren','웨스트마르크':'Westmark',
   '린덴':'Linden','오버탈':'Obertal','슈타인':'Stein','발트호프':'Waldhof','클라인브뤼크':'Kleinbruck','호헨':'Hohen','도르프':'Dorf','아이헨':'Eichen','노이탈':'Neutal','펠젠':'Felsen','라우흐':'Rauch','알트브뤼크':'Altbruck','쾨니히스펠트':'Konigsfeld','잘름':'Salm','브루넨':'Brunnen',
   '서북 삼림':'Northwestern Forest','북동 수림':'Northeastern Woods','동남 숲':'Southeastern Forest','서남 숲':'Southwestern Forest','검은 숲':'Blackwood','동부 대삼림':'Great Eastern Forest','남부 소나무숲':'Southern Pines','강변 수림':'Riverside Woods','발트마르크 숲':'Waldmark Forest','전나무 능선':'Fir Ridge','심동부 숲':'Deep Eastern Forest','녹색 지대':'Green Belt','늑대 숲':'Wolfwood','남부 변경림':'Southern March Forest','하부 소나무숲':'Lower Pines','국경 수림':'Border Woods',
